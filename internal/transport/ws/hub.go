@@ -42,3 +42,11 @@ func (h *Hub) Run() {
 		}
 	}
 }
+
+func NewHub() *Hub {
+	return &Hub{}
+}
+
+func (h *Hub) Register(client *Client) {
+	h.register <- client
+}

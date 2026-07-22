@@ -13,17 +13,19 @@ type Client struct {
 	conn    *websocket.Conn
 	send    chan []byte
 	userID  uuid.UUID
+	roomID  uuid.UUID
 	roomIDs map[uuid.UUID]bool
 }
 
-func (c *Client) writePump() {
+func (c *Client) WritePump() {
 	defer c.conn.Close()
 	for message := range c.send {
 		c.conn.WriteMessage(websocket.TextMessage, message)
 	}
 }
 
-func (c *Client) readPump() {
+func (c *Client) ReadPump() {
+
 	defer c.conn.Close()
 	for {
 		_, msg, err := c.conn.ReadMessage()
@@ -41,4 +43,17 @@ func (c *Client) readPump() {
 		c.hub.broadcast <- payload
 
 	}
+}
+
+func NewClient(hub *Hub, conn *websocket.Conn, userID uuid.UUID, roomID uuid.UUID) *Client {
+	c := &Client{
+		hub:     hub,
+		conn:    conn,
+		send:    make(chan []byte, 256),
+		userID:  userID,
+		roomID:  roomID,
+		roomIDs: make(map[uuid.UUID]bool),
+	}
+	c.roomIDs[roomID] = true
+	return c
 }
